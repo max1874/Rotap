@@ -45,7 +45,7 @@ final class RecorderModel {
 
     var hasHeardSound: Bool { recorder.stats.heardSound }
 
-    func livePeaks(_ count: Int) -> [Float] {
+    func livePeaks(_ count: Int) -> LivePeaks {
         recorder.recentPeaks(count)
     }
 

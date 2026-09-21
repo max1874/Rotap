@@ -43,31 +43,45 @@ private extension NSView {
 // MARK: - Live meter
 
 struct LiveWaveformView: NSViewRepresentable {
-    let peaks: @MainActor (Int) -> [Float]
+    let peaks: @MainActor (Int) -> LivePeaks
 
     func makeNSView(context: Context) -> LiveWaveformNSView { LiveWaveformNSView(peaks: peaks) }
     func updateNSView(_ view: LiveWaveformNSView, context: Context) { view.peaks = peaks }
 }
 
-/// Scrolling bar meter, newest peak on the right, refreshed at the rate peaks are produced.
+/// Scrolling bar meter, newest peak on the right, moving continuously at display rate.
+///
+/// Peaks are produced 20 times a second and arrive in jittery batches. Stepping the bars on arrival looks like
+/// a 20 fps flip-book, so the view keeps its own scroll position that advances smoothly at the production rate,
+/// trailing the newest peak by a small buffer. Each frame only translates a layer; the bar path is rebuilt
+/// when a new peak scrolls in.
 final class LiveWaveformNSView: NSView {
-    var peaks: @MainActor (Int) -> [Float]
+    var peaks: @MainActor (Int) -> LivePeaks
 
+    /// Peaks of delay (~150 ms) that absorb delivery jitter.
+    private static let lag = 3.0
+
+    private let content = CALayer()
     private let bars = CAShapeLayer()
     private let baseline = CAShapeLayer()
     private var link: CADisplayLink?
-    private var lastLevels: [Float] = []
+    /// Scroll position in peaks: everything before it is on screen.
+    private var position = 0.0
+    private var lastTimestamp: CFTimeInterval?
+    private var drawnIndex = -1
 
-    init(peaks: @escaping @MainActor (Int) -> [Float]) {
+    init(peaks: @escaping @MainActor (Int) -> LivePeaks) {
         self.peaks = peaks
         super.init(frame: .zero)
         wantsLayer = true
+        layer?.masksToBounds = true
         baseline.lineWidth = 1.5
         baseline.lineCap = .round
         baseline.lineDashPattern = [0.5, 4.5]
         baseline.fillColor = nil
-        layer?.addSublayer(baseline)
-        layer?.addSublayer(bars)
+        content.addSublayer(baseline)
+        content.addSublayer(bars)
+        layer?.addSublayer(content)
         updateColors()
     }
 
@@ -76,7 +90,13 @@ final class LiveWaveformNSView: NSView {
 
     override func viewDidMoveToWindow() {
         link?.invalidate()
-        link = window == nil ? nil : makeDisplayLink(fps: Float(Waveform.peaksPerSecond), action: #selector(tick))
+        link = nil
+        lastTimestamp = nil
+        guard window != nil else { return }
+        let link = displayLink(target: self, selector: #selector(tick(_:)))
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 60, preferred: 60)
+        link.add(to: .main, forMode: .common)
+        self.link = link
     }
 
     override func viewDidChangeEffectiveAppearance() {
@@ -86,28 +106,49 @@ final class LiveWaveformNSView: NSView {
 
     override func layout() {
         super.layout()
-        bars.frame = bounds
-        baseline.frame = bounds
-        redraw(force: true)
-    }
-
-    @objc private func tick() { redraw(force: false) }
-
-    private func redraw(force: Bool) {
-        let slots = max(0, Int(bounds.width / Bars.step))
-        let levels = peaks(slots)
-        guard force || levels != lastLevels else { return }
-        lastLevels = levels
-
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        let filledWidth = CGFloat(levels.count) * Bars.step
-        bars.path = Bars.path(levels, originX: bounds.width - filledWidth, height: bounds.height)
+        for sublayer in [content, bars, baseline] { sublayer.frame = bounds }
+        CATransaction.commit()
+        drawnIndex = -1
+    }
+
+    @objc private func tick(_ link: CADisplayLink) {
+        let slots = Int(bounds.width / Bars.step) + 2
+        let snapshot = peaks(slots + 16)  // the view trails the newest peak, so fetch a little extra
+        let now = link.targetTimestamp
+        let dt = lastTimestamp.map { min(now - $0, 0.1) } ?? 0
+        lastTimestamp = now
+
+        // Advance at the production rate, ease toward "newest minus lag", never pass the data or run backwards.
+        let target = Double(snapshot.total) - Self.lag
+        var next = position + dt * Waveform.peaksPerSecond
+        next += (target - next) * min(1, dt * 3)
+        position = max(position, min(next, Double(snapshot.total)))
+
+        let index = Int(position)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        if index != drawnIndex {
+            drawnIndex = index
+            rebuild(upTo: index, from: snapshot, slots: slots)
+        }
+        content.setAffineTransform(CGAffineTransform(translationX: -(position - Double(index)) * Bars.step, y: 0))
+        CATransaction.commit()
+    }
+
+    /// Lays out peaks `[index - slots, index)` so that peak `index - 1` ends one step from the right edge.
+    private func rebuild(upTo index: Int, from snapshot: LivePeaks, slots: Int) {
+        let firstAvailable = snapshot.total - snapshot.levels.count
+        let first = max(index - slots, firstAvailable, 0)
+        let visible = first < index ? Array(snapshot.levels[(first - firstAvailable)..<(index - firstAvailable)]) : []
+        let startX = bounds.width - CGFloat(index - first) * Bars.step
+        bars.path = Bars.path(visible, originX: startX, height: bounds.height)
+
         let line = CGMutablePath()
         line.move(to: CGPoint(x: 0, y: bounds.midY))
-        line.addLine(to: CGPoint(x: max(0, bounds.width - filledWidth), y: bounds.midY))
+        line.addLine(to: CGPoint(x: max(0, startX), y: bounds.midY))
         baseline.path = line
-        CATransaction.commit()
     }
 
     private func updateColors() {
@@ -211,9 +252,9 @@ final class PlaybackWaveformNSView: NSView {
 
     private func rebuild() {
         let count = max(1, Int(bounds.width / Bars.step))
-        // Fit the whole recording to the width: max-pool long ones, stretch short ones.
-        let levels = peaks.count >= count
-            ? Waveform.downsample(peaks, to: count)
+        // Fit the whole recording to the width: average long ones (then restore contrast), repeat short ones.
+        let levels = peaks.count > count
+            ? Waveform.stretched(Waveform.downsample(peaks, to: count))
             : (peaks.isEmpty ? [] : (0..<count).map { peaks[$0 * peaks.count / count] })
         CATransaction.begin()
         CATransaction.setDisableActions(true)

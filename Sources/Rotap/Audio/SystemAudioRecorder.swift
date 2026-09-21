@@ -29,6 +29,13 @@ enum OutputFormat: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+struct LivePeaks: Sendable {
+    /// Newest peaks, oldest first.
+    var levels: [Float]
+    /// Peaks produced since recording started; the last element of `levels` has index `total - 1`.
+    var total: Int
+}
+
 /// Records system (or per-app) audio through a Core Audio process tap.
 ///
 /// Pipeline: HAL real-time IO thread → lock-free ring buffer → writer thread (encode, write, waveform).
@@ -65,9 +72,9 @@ final class SystemAudioRecorder: @unchecked Sendable {
         )
     }
 
-    /// The most recent `count` waveform peaks (oldest first), for the live meter.
-    func recentPeaks(_ count: Int) -> [Float] {
-        writer?.recentPeaks(count) ?? []
+    /// The most recent `count` waveform peaks (oldest first) plus how many peaks exist in total, for the live meter.
+    func recentPeaks(_ count: Int) -> LivePeaks {
+        writer?.recentPeaks(count) ?? LivePeaks(levels: [], total: 0)
     }
 
     func start(source: AudioSource, url: URL, format: OutputFormat) throws {
@@ -215,7 +222,7 @@ private final class Writer: @unchecked Sendable {
     private let onFailure: @Sendable (Error) -> Void
     private let finishing = Atomic<Bool>(false)
     private let done = DispatchSemaphore(value: 0)
-    private let peaks = Mutex<[Float]>([])
+    private let live = Mutex(LivePeaks(levels: [], total: 0))
     let heardSound = Atomic<Bool>(false)
 
     // Owned by the writer thread once started.
@@ -260,8 +267,8 @@ private final class Writer: @unchecked Sendable {
         done.wait()
     }
 
-    func recentPeaks(_ count: Int) -> [Float] {
-        peaks.withLock { Array($0.suffix(count)) }
+    func recentPeaks(_ count: Int) -> LivePeaks {
+        live.withLock { LivePeaks(levels: Array($0.levels.suffix(count)), total: $0.total) }
     }
 
     private func run() {
@@ -295,9 +302,11 @@ private final class Writer: @unchecked Sendable {
                 let fresh = accumulator.peaks[published...]
                 published = accumulator.peaks.count
                 if fresh.contains(where: { $0 > 0 }) { heardSound.store(true, ordering: .relaxed) }
-                peaks.withLock { live in
-                    live.append(contentsOf: fresh)
-                    if live.count > Self.liveHistory { live.removeFirst(live.count - Self.liveHistory) }
+                let total = published
+                live.withLock { live in
+                    live.levels.append(contentsOf: fresh)
+                    if live.levels.count > Self.liveHistory { live.levels.removeFirst(live.levels.count - Self.liveHistory) }
+                    live.total = total
                 }
             }
 

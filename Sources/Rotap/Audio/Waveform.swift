@@ -28,14 +28,26 @@ enum Waveform {
         return bytes.map { Float($0) / 255 }
     }
 
-    /// Max-pools `peaks` down to at most `count` values, so short transients survive.
+    /// Averages `peaks` down to at most `count` values. Averaging (not max) keeps loudness contour on long
+    /// recordings: a bar covering 15 s nearly always contains one loud moment, so max-pooling fills every bar.
     static func downsample(_ peaks: [Float], to count: Int) -> [Float] {
         guard peaks.count > count, count > 0 else { return peaks }
-        return (0..<count).map { bucket in
-            let start = bucket * peaks.count / count
-            let end = max(start + 1, (bucket + 1) * peaks.count / count)
-            return peaks[start..<end].max() ?? 0
+        return peaks.withUnsafeBufferPointer { buffer in
+            (0..<count).map { bucket in
+                let start = bucket * buffer.count / count
+                let end = max(start + 1, (bucket + 1) * buffer.count / count)
+                var mean: Float = 0
+                vDSP_meanv(buffer.baseAddress! + start, 1, &mean, vDSP_Length(end - start))
+                return mean
+            }
         }
+    }
+
+    /// Stretches levels to the recording's own quiet-to-loud range, so an hour of steady content still
+    /// shows where it gets quieter or louder. Near-uniform material is left alone rather than amplifying noise.
+    static func stretched(_ levels: [Float]) -> [Float] {
+        guard let low = levels.min(), let high = levels.max(), high - low > 0.1 else { return levels }
+        return levels.map { ($0 - low) / (high - low) }
     }
 }
 
