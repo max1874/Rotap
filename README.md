@@ -1,56 +1,56 @@
 # Rotap
 
-录下 Mac 正在播放的声音，也可以同时录麦克风。原生 macOS App，不装虚拟声卡，不改你的扬声器或耳机设置。
+English | [简体中文](README.zh-CN.md)
 
-*Record what your Mac is playing — all apps or just one — optionally mixed with your microphone. Native, no virtual audio driver.*
+Record what your Mac is playing — every app or just one — optionally mixed with your microphone. A native macOS app: no virtual audio driver, no changes to your speaker or headphone setup.
 
-## 功能
+## Features
 
-- **三种录制内容**：仅系统声音、仅麦克风、系统声音 + 麦克风（混在同一个文件里）。
-- **选择来源**：全部系统声音，或只录某一个正在发声的 App。
-- **格式**：M4A（AAC）或 WAV（24-bit）。
-- **波形**：录音时实时显示，录完后可以在波形上拖动定位播放。
-- **不打扰播放**：用 Core Audio Process Tap 旁听，输出设备照常工作，你听到的声音不受影响。
+- **Three capture modes**: system audio only, microphone only, or system audio + microphone mixed into one file.
+- **Pick a source**: all system audio, or a single app that is currently playing.
+- **Formats**: M4A (AAC) or WAV (24-bit).
+- **Waveform**: drawn live while recording; after recording, click or drag on it to seek.
+- **Stays out of the way**: listens through a Core Audio process tap, so your output device keeps working and what you hear is unchanged.
 
-## 下载
+## Download
 
-在 [Releases](https://github.com/max1874/Rotap/releases) 下载最新的 `Rotap-<版本>.dmg`，把 Rotap 拖进「应用程序」。安装包经过 Developer ID 签名和 Apple 公证。
+Get the latest `Rotap-<version>.dmg` from [Releases](https://github.com/max1874/Rotap/releases) and drag Rotap into Applications. The disk image is signed with a Developer ID and notarized by Apple.
 
-需要 **macOS 26** 或更高版本。
+Requires **macOS 26** or later. The app's interface is currently in Chinese only.
 
-## 权限
+## Permissions
 
-| 权限 | 什么时候问 | 用来做什么 |
+| Permission | Asked when | Used for |
 | --- | --- | --- |
-| 录制系统音频 | 第一次录系统声音时 | 读取其他 App 播放的声音 |
-| 麦克风 | 第一次录麦克风时 | 录你的声音 |
+| System audio recording | The first time you record system audio | Reading the sound other apps play |
+| Microphone | The first time you record the microphone | Recording your voice |
 
-录音只写到本机（默认 `~/Music/Rotap`，可以在设置里改）。Rotap 不联网，不上传任何东西。
+Recordings are saved only on your Mac (`~/Music/Rotap` by default, changeable in Settings). Rotap makes no network connections and uploads nothing.
 
-## 从源码构建
+## Building from source
 
-需要 Xcode 26 或更高版本。
+Requires Xcode 26 or later.
 
 ```sh
-make app          # 维护者用：Developer ID 签名，产物在 build/Rotap.app
+make app          # maintainer build: Developer ID signed, output at build/Rotap.app
 ```
 
-没有维护者证书时，用 ad-hoc 签名构建：
+Without the maintainer's certificate, build with an ad-hoc signature:
 
 ```sh
 xcodebuild -project Rotap.xcodeproj -scheme Rotap -configuration Release \
   -destination 'generic/platform=macOS' CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= build
 ```
 
-ad-hoc 签名的 App 每次重新构建后，系统都会把它当成新 App 重新询问权限。
+macOS treats every rebuild of an ad-hoc signed app as a new app and asks for the permissions again.
 
-`make release` / `make install` 是维护者的发版流程（签名、公证、发布 Release），依赖本仓库之外的工具。
+`make release` / `make install` are the maintainer's release flow (signing, notarization, publishing a release) and depend on tooling outside this repository.
 
-## 实现
+## How it works
 
-- `Audio/AudioRecorder.swift`：Process Tap 和麦克风放进同一个私有聚合设备，共享时钟；实时 IO 线程只做混音，经无锁环形缓冲交给写入线程编码写盘。
-- `Audio/Waveform.swift`：波形在录音时顺手生成，存在文件的扩展属性里，打开旧录音不用重新分析。
-- `Views/WaveformLayers.swift`：波形用 Core Animation 图层绘制，录音时界面 CPU 占用很低。
+- `Audio/AudioRecorder.swift`: the process tap and the microphone share one private aggregate device and therefore one clock. The real-time IO thread only mixes; a lock-free ring buffer hands the audio to a writer thread that encodes and writes it.
+- `Audio/Waveform.swift`: the waveform is built while recording and stored in the file's extended attributes, so opening an old recording needs no re-analysis.
+- `Views/WaveformLayers.swift`: waveforms are drawn with Core Animation layers, keeping the UI's CPU use low while recording.
 
 ## License
 
