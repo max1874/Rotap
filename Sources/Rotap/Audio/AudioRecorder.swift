@@ -1,3 +1,4 @@
+import Accelerate
 import AVFoundation
 import CoreAudio
 import Synchronization
@@ -36,12 +37,19 @@ struct LivePeaks: Sendable {
     var total: Int
 }
 
-/// Records system (or per-app) audio through a Core Audio process tap.
+/// What to capture: system (or one app's) audio through a process tap, a microphone, or both mixed.
+struct CaptureConfiguration: Sendable {
+    var system: AudioSource?
+    var microphoneUID: String?
+}
+
+/// Records through one private aggregate device holding the process tap and/or the microphone, so both share
+/// a clock and arrive sample-aligned in a single IO callback.
 ///
-/// Pipeline: HAL real-time IO thread → lock-free ring buffer → writer thread (encode, write, waveform).
-/// The IO callback only copies samples; nothing on it allocates, locks or touches the disk.
+/// Pipeline: HAL real-time IO thread (mix to stereo) → lock-free ring buffer → writer thread (encode, write,
+/// waveform). Nothing on the IO thread allocates, locks or touches the disk.
 /// Playback routing is untouched: no virtual device, the tap just listens alongside the real output.
-final class SystemAudioRecorder: @unchecked Sendable {
+final class AudioRecorder: @unchecked Sendable {
     struct Stats: Sendable {
         var frames: Int64
         var droppedFrames: Int64
@@ -57,6 +65,7 @@ final class SystemAudioRecorder: @unchecked Sendable {
     private var tapID = AudioObjectID.unknown
     private var aggregateID = AudioObjectID.unknown
     private var ioProcID: AudioDeviceIOProcID?
+    private var keepAlive: (device: AudioObjectID, procID: AudioDeviceIOProcID)?
     private var io: IOState?
     private var writer: Writer?
 
@@ -77,15 +86,23 @@ final class SystemAudioRecorder: @unchecked Sendable {
         writer?.recentPeaks(count) ?? LivePeaks(levels: [], total: 0)
     }
 
-    func start(source: AudioSource, url: URL, format: OutputFormat) throws {
+    func start(_ configuration: CaptureConfiguration, url: URL, format: OutputFormat) throws {
         stop()
         do {
-            try createTap(for: source)
-            let tapFormat = try readTapFormat()
-            try createAggregateDevice()
+            var tapRate: Double?
+            if let source = configuration.system {
+                try createTap(for: source)
+                tapRate = try readTapFormat().mSampleRate
+                startOutputKeepAlive()
+            }
+            try createAggregateDevice(includeTap: tapID != .unknown, microphoneUID: configuration.microphoneUID)
 
-            let channels = Int(tapFormat.mChannelsPerFrame)
-            let io = IOState(sampleRate: tapFormat.mSampleRate, channels: channels)
+            // The aggregate runs at its main device's rate (the microphone when present); the tap is resampled to it.
+            let aggregateRate = (try? aggregateID.read(kAudioDevicePropertyNominalSampleRate, default: Float64(0))) ?? 0
+            guard let sampleRate = aggregateRate > 0 ? aggregateRate : tapRate else {
+                throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "读取采样率")
+            }
+            let io = IOState(sampleRate: sampleRate)
             let writer = try Writer(url: url, format: format, io: io) { [weak self] error in
                 guard let onFailure = self?.onFailure else { return }
                 DispatchQueue.main.async { onFailure(error) }
@@ -110,6 +127,11 @@ final class SystemAudioRecorder: @unchecked Sendable {
             AudioDeviceDestroyIOProcID(aggregateID, ioProcID)
         }
         ioProcID = nil
+        if let keepAlive {
+            AudioDeviceStop(keepAlive.device, keepAlive.procID)
+            AudioDeviceDestroyIOProcID(keepAlive.device, keepAlive.procID)
+            self.keepAlive = nil
+        }
         writer?.finish()
         let final = stats
         writer = nil
@@ -126,15 +148,17 @@ final class SystemAudioRecorder: @unchecked Sendable {
     }
 
     private func createTap(for source: AudioSource) throws {
+        // Rotap itself is tapped too: its keep-alive silence is what drives the tap while nothing else plays.
+        // It never plays anything audible while recording (playback is disabled then).
         let description: CATapDescription
         if source.isSystem {
-            let own = (try? AudioObjectID.processObject(for: ProcessInfo.processInfo.processIdentifier)) ?? .unknown
-            description = CATapDescription(stereoGlobalTapButExcludeProcesses: own == .unknown ? [] : [own])
+            description = CATapDescription(stereoGlobalTapButExcludeProcesses: [])
         } else {
             guard !source.processObjectIDs.isEmpty else {
                 throw CoreAudioError(status: kAudioHardwareBadObjectError, operation: "定位「\(source.name)」的音频进程")
             }
-            description = CATapDescription(stereoMixdownOfProcesses: source.processObjectIDs)
+            let own = (try? AudioObjectID.processObject(for: ProcessInfo.processInfo.processIdentifier)) ?? .unknown
+            description = CATapDescription(stereoMixdownOfProcesses: source.processObjectIDs + (own == .unknown ? [] : [own]))
         }
         description.uuid = UUID()
         description.name = "Rotap"
@@ -157,23 +181,52 @@ final class SystemAudioRecorder: @unchecked Sendable {
         return format
     }
 
-    private func createAggregateDevice() throws {
-        let tapUID = try tapID.readString(kAudioTapPropertyUID)
-        // The aggregate holds only the tap. Adding the output device as a sub-device would also pull in its
-        // input streams (e.g. AirPods' microphone, which forces them into the low-quality call profile) and
-        // tie the recording to that device, so switching speakers mid-recording would break it.
-        let description: [String: Any] = [
-            kAudioAggregateDeviceNameKey: "Rotap Tap",
+    private func createAggregateDevice(includeTap: Bool, microphoneUID: String?) throws {
+        // Only what is recorded goes in. Adding the output device as well would pull in its input streams
+        // (e.g. AirPods' microphone, which forces them into the low-quality call profile) and tie the recording
+        // to that device, so switching speakers mid-recording would break it.
+        var description: [String: Any] = [
+            kAudioAggregateDeviceNameKey: "Rotap",
             kAudioAggregateDeviceUIDKey: "rotap.aggregate.\(UUID().uuidString)",
             kAudioAggregateDeviceIsPrivateKey: true,
             kAudioAggregateDeviceIsStackedKey: false,
-            kAudioAggregateDeviceTapAutoStartKey: true,
             kAudioAggregateDeviceSubDeviceListKey: [] as [Any],
-            kAudioAggregateDeviceTapListKey: [[kAudioSubTapUIDKey: tapUID, kAudioSubTapDriftCompensationKey: true]],
         ]
+        if let microphoneUID {
+            // The microphone is the clock; the tap is drift-compensated against it.
+            description[kAudioAggregateDeviceMainSubDeviceKey] = microphoneUID
+            description[kAudioAggregateDeviceSubDeviceListKey] = [[kAudioSubDeviceUIDKey: microphoneUID]]
+        }
+        if includeTap {
+            let tapUID = try tapID.readString(kAudioTapPropertyUID)
+            description[kAudioAggregateDeviceTapAutoStartKey] = true
+            description[kAudioAggregateDeviceTapListKey] = [[kAudioSubTapUIDKey: tapUID, kAudioSubTapDriftCompensationKey: true]]
+        }
         var aggregateID = AudioObjectID.unknown
         try check(AudioHardwareCreateAggregateDevice(description as CFDictionary, &aggregateID), "创建聚合设备")
         self.aggregateID = aggregateID
+    }
+
+    /// A process tap only produces frames while a tapped process is playing, and a stalled tap stalls the whole
+    /// aggregate, microphone included. Playing silence from Rotap (which the tap includes) keeps it running, so
+    /// the recording starts immediately and keeps real time even when nothing else is playing.
+    /// Best effort: without it the tap still works, it just waits for the first sound.
+    private func startOutputKeepAlive() {
+        guard let device = try? AudioObjectID.system.read(kAudioHardwarePropertyDefaultOutputDevice, default: AudioObjectID.unknown),
+              device != .unknown
+        else { return }
+        var procID: AudioDeviceIOProcID?
+        let status = AudioDeviceCreateIOProcIDWithBlock(&procID, device, nil) { _, _, _, output, _ in
+            for buffer in UnsafeMutableAudioBufferListPointer(output) {
+                if let data = buffer.mData { memset(data, 0, Int(buffer.mDataByteSize)) }
+            }
+        }
+        guard status == noErr, let procID else { return }
+        guard AudioDeviceStart(device, procID) == noErr else {
+            AudioDeviceDestroyIOProcID(device, procID)
+            return
+        }
+        keepAlive = (device, procID)
     }
 
     private func startIO(_ io: IOState) throws {
@@ -187,30 +240,63 @@ final class SystemAudioRecorder: @unchecked Sendable {
     }
 }
 
-/// Everything the real-time callback touches. Immutable apart from atomics and the ring buffer.
-private final class IOState: Sendable {
+/// Everything the real-time callback touches. Immutable apart from atomics, the ring buffer and the mix scratch.
+private final class IOState: @unchecked Sendable {
+    /// Recordings are always stereo; mono inputs are spread to both sides.
+    let channels = 2
     let sampleRate: Double
-    let channels: Int
     let ring: SampleRingBuffer
     let frames = Atomic<Int64>(0)
     let droppedFrames = Atomic<Int64>(0)
 
-    init(sampleRate: Double, channels: Int) {
+    private static let chunkFrames = 4096
+    /// Only touched by the IO thread.
+    private let mix: UnsafeMutablePointer<Float>
+
+    init(sampleRate: Double) {
         self.sampleRate = sampleRate
-        self.channels = channels
         // 8 seconds of headroom: the writer can stall that long (slow disk, AAC encoder hiccup) without loss.
         ring = SampleRingBuffer(minimumCapacity: Int(sampleRate * 8) * channels)
+        mix = .allocate(capacity: Self.chunkFrames * channels)
+        mix.initialize(repeating: 0, count: Self.chunkFrames * channels)
     }
 
+    deinit { mix.deallocate() }
+
+    /// Sums every input stream (tap and/or microphone) into interleaved stereo and publishes it.
     func receive(_ input: UnsafePointer<AudioBufferList>) {
         let buffers = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: input))
-        guard let first = buffers.first, first.mNumberChannels > 0 else { return }
-        let frameCount = Int(first.mDataByteSize) / (MemoryLayout<Float>.size * Int(first.mNumberChannels))
-        guard frameCount > 0 else { return }
-        if ring.write(buffers, frames: frameCount, channels: channels) {
-            frames.add(Int64(frameCount), ordering: .relaxed)
-        } else {
-            droppedFrames.add(Int64(frameCount), ordering: .relaxed)
+        var frameCount = Int.max
+        for buffer in buffers where buffer.mNumberChannels > 0 {
+            frameCount = min(frameCount, Int(buffer.mDataByteSize) / (MemoryLayout<Float>.size * Int(buffer.mNumberChannels)))
+        }
+        guard frameCount != .max, frameCount > 0 else { return }
+
+        var offset = 0
+        while offset < frameCount {
+            let count = min(Self.chunkFrames, frameCount - offset)
+            mixChunk(buffers, from: offset, frames: count)
+            if ring.write(mix, count: count * channels) {
+                frames.add(Int64(count), ordering: .relaxed)
+            } else {
+                droppedFrames.add(Int64(count), ordering: .relaxed)
+            }
+            offset += count
+        }
+    }
+
+    private func mixChunk(_ buffers: UnsafeMutableAudioBufferListPointer, from offset: Int, frames count: Int) {
+        vDSP_vclr(mix, 1, vDSP_Length(count * channels))
+        let n = vDSP_Length(count)
+        for buffer in buffers {
+            let streamChannels = Int(buffer.mNumberChannels)
+            guard streamChannels > 0, let data = buffer.mData?.assumingMemoryBound(to: Float.self) else { continue }
+            let source = data + offset * streamChannels
+            let stride = vDSP_Stride(streamChannels)
+            // Mono feeds both sides; wider streams contribute their first two channels.
+            let right = streamChannels > 1 ? source + 1 : source
+            vDSP_vadd(source, stride, mix, 2, mix, 2, n)
+            vDSP_vadd(right, stride, mix + 1, 2, mix + 1, 2, n)
         }
     }
 }

@@ -1,13 +1,16 @@
 import Foundation
 
-/// `Rotap --record <seconds> [--out <file>] [--app <bundle id>] [--format m4a|wav]`
+/// `Rotap --record <seconds> [--out <file>] [--mode system|microphone|both] [--app <bundle id>]
+///  [--mic <device uid>] [--format m4a|wav]`
 /// (`Rotap --list-sources` prints the ids accepted by `--app`.)
 /// Records without UI and exits. Launch through `open -W Rotap.app --args ...` so the
 /// audio-capture permission is attributed to Rotap rather than the terminal.
 struct HeadlessRecording {
     let seconds: Double
     let output: URL?
+    let mode: CaptureMode
     let appBundleID: String?
+    let microphoneUID: String?
     let format: OutputFormat
 
     init?(arguments: [String]) {
@@ -17,7 +20,9 @@ struct HeadlessRecording {
         guard let seconds = value("--record").flatMap(Double.init) else { return nil }
         self.seconds = seconds
         output = value("--out").map { URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath) }
+        mode = value("--mode").flatMap(CaptureMode.init) ?? .system
         appBundleID = value("--app")
+        microphoneUID = value("--mic")
         format = value("--format").flatMap(OutputFormat.init)
             ?? output.flatMap { OutputFormat(rawValue: $0.pathExtension.lowercased()) }
             ?? .m4a
@@ -25,26 +30,42 @@ struct HeadlessRecording {
 
     @MainActor
     func run() -> Int32 {
-        var source = AudioSource.system
-        if let appBundleID {
-            guard let match = AudioSource.available().first(where: { $0.id == appBundleID }) else {
-                log("未找到正在使用音频的 App：\(appBundleID)")
+        var source: AudioSource?
+        if mode.includesSystem {
+            source = .system
+            if let appBundleID {
+                guard let match = AudioSource.available().first(where: { $0.id == appBundleID }) else {
+                    log("未找到正在使用音频的 App：\(appBundleID)")
+                    return 2
+                }
+                source = match
+            }
+        }
+        var microphone: String?
+        if mode.includesMicrophone {
+            guard let uid = microphoneUID ?? InputDevice.defaultDevice()?.uid else {
+                log("没有找到可用的麦克风")
                 return 2
             }
-            source = match
+            microphone = uid
         }
 
+        let label = switch (source, microphone) {
+        case let (source?, nil): source.label
+        case let (source?, _?): "\(source.label) + 麦克风"
+        default: "麦克风"
+        }
         let url = output ?? {
             let directory = Preferences.defaultDirectory
             try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            return Recording.newURL(in: directory, source: source, format: format)
+            return Recording.newURL(in: directory, label: label, format: format)
         }()
 
-        let recorder = SystemAudioRecorder()
+        let recorder = AudioRecorder()
         var failure: Error?
         recorder.onFailure = { failure = $0 }
         do {
-            try recorder.start(source: source, url: url, format: format)
+            try recorder.start(CaptureConfiguration(system: source, microphoneUID: microphone), url: url, format: format)
         } catch {
             log("录音失败：\(error.localizedDescription)")
             return 1
@@ -60,7 +81,7 @@ struct HeadlessRecording {
         let envelope = Waveform.load(from: url) ?? []
         log(String(
             format: "%@  source=%@  duration=%.2fs  dropped=%lld  peak=%.3f  waveform=%d",
-            url.path, source.label, stats.duration, stats.droppedFrames, envelope.max() ?? 0, envelope.count
+            url.path, label, stats.duration, stats.droppedFrames, envelope.max() ?? 0, envelope.count
         ))
         return 0
     }

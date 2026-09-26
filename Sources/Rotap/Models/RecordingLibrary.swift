@@ -22,8 +22,8 @@ struct Recording: Identifiable, Hashable, Sendable {
 
     nonisolated(unsafe) private static let generatedName = /(.+) \d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2}(?: \d+)?/
 
-    static func newURL(in directory: URL, source: AudioSource, format: OutputFormat) -> URL {
-        let label = source.label.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+    static func newURL(in directory: URL, label: String, format: OutputFormat) -> URL {
+        let label = label.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
         let base = "\(label) \(Date.now.formatted(Self.stamp))"
         var url = directory.appendingPathComponent(base).appendingPathExtension(format.rawValue)
         var index = 2

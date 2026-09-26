@@ -56,24 +56,6 @@ struct AudioSource: Identifiable, Hashable, Sendable {
 
     /// Calls `onChange` on the main queue whenever the set of audio clients changes, until the token is released.
     static func observeChanges(_ onChange: @escaping @MainActor @Sendable () -> Void) -> AnyObject {
-        ProcessListObserver(onChange)
-    }
-}
-
-private final class ProcessListObserver {
-    private var address = AudioObjectPropertyAddress(
-        mSelector: kAudioHardwarePropertyProcessObjectList,
-        mScope: kAudioObjectPropertyScopeGlobal,
-        mElement: kAudioObjectPropertyElementMain
-    )
-    private let block: AudioObjectPropertyListenerBlock
-
-    init(_ onChange: @escaping @MainActor @Sendable () -> Void) {
-        block = { _, _ in MainActor.assumeIsolated { onChange() } }
-        AudioObjectAddPropertyListenerBlock(.system, &address, .main, block)
-    }
-
-    deinit {
-        AudioObjectRemovePropertyListenerBlock(.system, &address, .main, block)
+        AudioPropertyObserver(kAudioHardwarePropertyProcessObjectList, onChange: onChange)
     }
 }

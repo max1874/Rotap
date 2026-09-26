@@ -24,10 +24,12 @@ extension AudioObjectID {
     static let system = AudioObjectID(kAudioObjectSystemObject)
     static let unknown = AudioObjectID(kAudioObjectUnknown)
 
-    private static func address(_ selector: AudioObjectPropertySelector) -> AudioObjectPropertyAddress {
+    private static func address(
+        _ selector: AudioObjectPropertySelector, scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal
+    ) -> AudioObjectPropertyAddress {
         AudioObjectPropertyAddress(
             mSelector: selector,
-            mScope: kAudioObjectPropertyScopeGlobal,
+            mScope: scope,
             mElement: kAudioObjectPropertyElementMain
         )
     }
@@ -49,8 +51,10 @@ extension AudioObjectID {
         return value.takeRetainedValue() as String
     }
 
-    func readObjectIDs(_ selector: AudioObjectPropertySelector) throws -> [AudioObjectID] {
-        var address = Self.address(selector)
+    func readObjectIDs(
+        _ selector: AudioObjectPropertySelector, scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal
+    ) throws -> [AudioObjectID] {
+        var address = Self.address(selector, scope: scope)
         var size: UInt32 = 0
         try check(AudioObjectGetPropertyDataSize(self, &address, 0, nil, &size), "读取音频对象列表")
         var ids = [AudioObjectID](repeating: .unknown, count: Int(size) / MemoryLayout<AudioObjectID>.stride)
@@ -69,10 +73,24 @@ extension AudioObjectID {
         )
         return id
     }
+}
 
-    static func defaultOutputDeviceUID() throws -> String {
-        let device = try AudioObjectID.system.read(kAudioHardwarePropertyDefaultOutputDevice, default: AudioObjectID.unknown)
-        guard device != .unknown else { throw CoreAudioError(status: kAudioHardwareBadDeviceError, operation: "获取默认输出设备") }
-        return try device.readString(kAudioDevicePropertyDeviceUID)
+/// Calls `onChange` on the main queue whenever a system-object property changes, until released.
+final class AudioPropertyObserver {
+    private var address: AudioObjectPropertyAddress
+    private let block: AudioObjectPropertyListenerBlock
+
+    init(_ selector: AudioObjectPropertySelector, onChange: @escaping @MainActor @Sendable () -> Void) {
+        address = AudioObjectPropertyAddress(
+            mSelector: selector,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        block = { _, _ in MainActor.assumeIsolated { onChange() } }
+        AudioObjectAddPropertyListenerBlock(.system, &address, .main, block)
+    }
+
+    deinit {
+        AudioObjectRemovePropertyListenerBlock(.system, &address, .main, block)
     }
 }

@@ -13,8 +13,15 @@ struct LiveRecordingView: View {
             HStack(spacing: 8) {
                 Image(systemName: "record.circle")
                     .foregroundStyle(.record)
-                SourceIcon(source: session.source)
-                Text(session.source.name)
+                if let source = session.source {
+                    SourceIcon(source: source)
+                    Text(source.name)
+                }
+                if let microphone = session.microphone {
+                    if session.source != nil { Text("+").foregroundStyle(.secondary) }
+                    Image(systemName: "mic.fill")
+                    Text(microphone.name)
+                }
             }
             .font(.headline)
             .padding(.horizontal, 16)
@@ -33,7 +40,8 @@ struct LiveRecordingView: View {
                 .padding(.top, 20)
 
             TimelineView(.periodic(from: session.startedAt, by: 1)) { _ in
-                Text(recorder.hasHeardSound ? "正在录音" : "等待声音… 开始播放后波形就会出现")
+                Text(recorder.hasHeardSound ? "正在录音"
+                     : session.source == nil ? "等待声音…" : "等待声音… 开始播放后波形就会出现")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }

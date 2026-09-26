@@ -10,6 +10,13 @@ final class Preferences {
     var directory: URL {
         didSet { UserDefaults.standard.set(directory.path, forKey: "outputDirectory") }
     }
+    var captureMode: CaptureMode {
+        didSet { UserDefaults.standard.set(captureMode.rawValue, forKey: "captureMode") }
+    }
+    /// Empty means "follow the system default input".
+    var microphoneUID: String {
+        didSet { UserDefaults.standard.set(microphoneUID, forKey: "microphoneUID") }
+    }
 
     nonisolated static var defaultDirectory: URL {
         FileManager.default.urls(for: .musicDirectory, in: .userDomainMask)[0].appendingPathComponent("Rotap", isDirectory: true)
@@ -20,5 +27,7 @@ final class Preferences {
         format = defaults.string(forKey: "format").flatMap(OutputFormat.init) ?? .m4a
         directory = defaults.string(forKey: "outputDirectory").map { URL(fileURLWithPath: $0, isDirectory: true) }
             ?? Self.defaultDirectory
+        captureMode = defaults.string(forKey: "captureMode").flatMap(CaptureMode.init) ?? .system
+        microphoneUID = defaults.string(forKey: "microphoneUID") ?? ""
     }
 }

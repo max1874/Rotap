@@ -62,10 +62,37 @@ struct ContentView: View {
 }
 
 struct RecordToolbar: ToolbarContent {
+    @Environment(Preferences.self) private var preferences
     @Environment(RecorderModel.self) private var recorder
 
     var body: some ToolbarContent {
+        @Bindable var preferences = preferences
         @Bindable var recorder = recorder
+
+        ToolbarItem(placement: .primaryAction) {
+            Menu {
+                Picker("录制内容", selection: $preferences.captureMode) {
+                    ForEach(CaptureMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.inline)
+
+                Picker("麦克风", selection: $preferences.microphoneUID) {
+                    Text(recorder.defaultMicrophone.map { "系统默认（\($0.name)）" } ?? "系统默认").tag("")
+                    ForEach(recorder.microphones) { device in
+                        Text(device.name).tag(device.uid)
+                    }
+                }
+                .pickerStyle(.inline)
+                .disabled(!preferences.captureMode.includesMicrophone)
+            } label: {
+                Label("麦克风", systemImage: preferences.captureMode.includesMicrophone ? "mic.fill" : "mic.slash")
+                    .labelStyle(.iconOnly)
+            }
+            .disabled(recorder.isRecording)
+            .help("选择录制系统声音、麦克风，或两者同时录制")
+        }
 
         ToolbarItem(placement: .primaryAction) {
             Menu {
@@ -88,7 +115,7 @@ struct RecordToolbar: ToolbarContent {
                 }
                 .labelStyle(.titleAndIcon)
             }
-            .disabled(recorder.isRecording)
+            .disabled(recorder.isRecording || !preferences.captureMode.includesSystem)
             .help("选择要录制的声音来源")
         }
 
@@ -121,13 +148,22 @@ struct SourceIcon: View {
 }
 
 struct EmptyStateView: View {
+    @Environment(Preferences.self) private var preferences
     @Environment(RecorderModel.self) private var recorder
 
     var body: some View {
         ContentUnavailableView {
-            Label("录下 Mac 正在播放的声音", systemImage: "waveform")
+            switch preferences.captureMode {
+            case .system: Label("录下 Mac 正在播放的声音", systemImage: "waveform")
+            case .microphone: Label("用麦克风录音", systemImage: "mic")
+            case .both: Label("同时录下 Mac 的声音和麦克风", systemImage: "waveform.and.mic")
+            }
         } description: {
-            Text("选择来源后开始录音。Rotap 只在旁边聆听，不改变你的扬声器或耳机输出。")
+            switch preferences.captureMode {
+            case .system: Text("选择来源后开始录音。Rotap 只在旁边聆听，不改变你的扬声器或耳机输出。")
+            case .microphone: Text("在工具栏的麦克风菜单里可以换用别的麦克风。")
+            case .both: Text("你说的话和电脑播放的声音会混在同一个文件里。Rotap 不改变你的扬声器或耳机输出。")
+            }
         } actions: {
             Button {
                 recorder.start()

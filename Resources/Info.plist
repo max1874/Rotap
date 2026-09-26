@@ -26,6 +26,8 @@
 	<string>public.app-category.utilities</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>Rotap 需要录制其他 App 播放的声音，才能把电脑正在播放的音频保存为文件。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Rotap 需要使用麦克风，才能录下你的声音，或把它与电脑播放的声音一起保存。</string>
 	<key>NSSupportsAutomaticTermination</key>
 	<false/>
 </dict>
