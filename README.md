@@ -54,4 +54,4 @@ macOS treats every rebuild of an ad-hoc signed app as a new app and asks for the
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 MAX LIN

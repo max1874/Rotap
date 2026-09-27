@@ -54,4 +54,4 @@ ad-hoc 签名的 App 每次重新构建后，系统都会把它当成新 App 重
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 MAX LIN
