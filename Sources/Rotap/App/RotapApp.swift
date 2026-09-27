@@ -24,11 +24,11 @@ struct RotapApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
-            CommandMenu("录音") {
-                Button(recorder.isRecording ? "停止录音" : "开始录音", action: recorder.toggle)
+            CommandMenu("Recording") {
+                Button(recorder.isRecording ? "Stop Recording" : "Start Recording", action: recorder.toggle)
                     .keyboardShortcut("r")
                 Divider()
-                Button(player.isPlaying ? "暂停" : "播放", action: player.toggle)
+                Button(player.isPlaying ? "Pause" : "Play", action: player.toggle)
                     .keyboardShortcut("p", modifiers: [.command, .shift])
                     .disabled(player.url == nil || recorder.isRecording)
             }
@@ -37,6 +37,7 @@ struct RotapApp: App {
         Settings {
             SettingsView()
                 .environment(preferences)
+                .environment(recorder)
         }
     }
 }

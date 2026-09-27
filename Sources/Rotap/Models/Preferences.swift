@@ -13,6 +13,12 @@ final class Preferences {
     var captureMode: CaptureMode {
         didSet { UserDefaults.standard.set(captureMode.rawValue, forKey: "captureMode") }
     }
+    var language: AppLanguage {
+        didSet { language.save() }
+    }
+    /// The language this process launched with; switching takes a relaunch.
+    let launchLanguage = AppLanguage.saved
+    var needsRelaunchForLanguage: Bool { language != launchLanguage }
     /// Empty means "follow the system default input".
     var microphoneUID: String {
         didSet { UserDefaults.standard.set(microphoneUID, forKey: "microphoneUID") }
@@ -29,5 +35,6 @@ final class Preferences {
             ?? Self.defaultDirectory
         captureMode = defaults.string(forKey: "captureMode").flatMap(CaptureMode.init) ?? .system
         microphoneUID = defaults.string(forKey: "microphoneUID") ?? ""
+        language = launchLanguage
     }
 }

@@ -14,7 +14,7 @@ struct PlayerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            TextField("标题", text: $title)
+            TextField("Title", text: $title)
                 .textFieldStyle(.plain)
                 .font(.system(.title, weight: .semibold))
                 .focused($editingTitle)
@@ -58,7 +58,7 @@ struct PlayerView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                Button("在 Finder 中显示", systemImage: "folder") { library.reveal(recording) }
+                Button("Show in Finder", systemImage: "folder") { library.reveal(recording) }
                 ShareLink(item: recording.url)
             }
         }
@@ -66,8 +66,8 @@ struct PlayerView: View {
             title = recording.title
             peaks = await WaveformStore.shared.peaks(for: recording.url)
         }
-        .alert("无法重命名", isPresented: Binding(get: { renameError != nil }, set: { if !$0 { renameError = nil } })) {
-            Button("好") { title = recording.title }
+        .alert("Couldn’t Rename", isPresented: Binding(get: { renameError != nil }, set: { if !$0 { renameError = nil } })) {
+            Button("OK") { title = recording.title }
         } message: {
             Text(renameError ?? "")
         }
@@ -77,12 +77,12 @@ struct PlayerView: View {
         HStack(spacing: 6) {
             Text(recording.date, format: .dateTime.year().month().day().hour().minute())
             if let duration = recording.duration {
-                Text("·")
+                Text(verbatim: "·")
                 Text(Self.time(duration))
             }
-            Text("·")
+            Text(verbatim: "·")
             Text(recording.format)
-            Text("·")
+            Text(verbatim: "·")
             Text(recording.size, format: .byteCount(style: .file))
         }
         .font(.callout)
@@ -118,7 +118,7 @@ private struct PlayerControls: View {
                         .frame(width: 38, height: 38)
                 }
                 .buttonStyle(.glass)
-                .help("后退 15 秒")
+                .help("Back 15 Seconds")
 
                 Button(action: player.toggle) {
                     Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
@@ -127,7 +127,7 @@ private struct PlayerControls: View {
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(.glassProminent)
-                .help(player.isPlaying ? "暂停" : "播放")
+                .help(player.isPlaying ? "Pause" : "Play")
 
                 Button { player.skip(by: 15) } label: {
                     Image(systemName: "goforward.15")
@@ -135,7 +135,7 @@ private struct PlayerControls: View {
                         .frame(width: 38, height: 38)
                 }
                 .buttonStyle(.glass)
-                .help("前进 15 秒")
+                .help("Forward 15 Seconds")
             }
             .buttonBorderShape(.circle)
         }

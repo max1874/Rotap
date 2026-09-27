@@ -35,7 +35,7 @@ struct HeadlessRecording {
             source = .system
             if let appBundleID {
                 guard let match = AudioSource.available().first(where: { $0.id == appBundleID }) else {
-                    log("未找到正在使用音频的 App：\(appBundleID)")
+                    log("No app using audio matches \(appBundleID)")
                     return 2
                 }
                 source = match
@@ -44,7 +44,7 @@ struct HeadlessRecording {
         var microphone: String?
         if mode.includesMicrophone {
             guard let uid = microphoneUID ?? InputDevice.defaultDevice()?.uid else {
-                log("没有找到可用的麦克风")
+                log("No microphone is available")
                 return 2
             }
             microphone = uid
@@ -52,8 +52,8 @@ struct HeadlessRecording {
 
         let label = switch (source, microphone) {
         case let (source?, nil): source.label
-        case let (source?, _?): "\(source.label) + 麦克风"
-        default: "麦克风"
+        case let (source?, _?): String(localized: "\(source.label) + Microphone")
+        default: String(localized: "Microphone")
         }
         let url = output ?? {
             let directory = Preferences.defaultDirectory
@@ -67,7 +67,7 @@ struct HeadlessRecording {
         do {
             try recorder.start(CaptureConfiguration(system: source, microphoneUID: microphone), url: url, format: format)
         } catch {
-            log("录音失败：\(error.localizedDescription)")
+            log("Recording failed: \(error.localizedDescription)")
             return 1
         }
 
@@ -75,7 +75,7 @@ struct HeadlessRecording {
         let stats = recorder.stop()
 
         if let failure {
-            log("写入失败：\(failure.localizedDescription)")
+            log("Writing failed: \(failure.localizedDescription)")
             return 1
         }
         let envelope = Waveform.load(from: url) ?? []

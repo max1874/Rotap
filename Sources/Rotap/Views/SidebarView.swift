@@ -30,7 +30,7 @@ struct SidebarView: View {
                 }
             }
         }
-        .searchable(text: $query, placement: .sidebar, prompt: "搜索录音")
+        .searchable(text: $query, placement: .sidebar, prompt: "Search Recordings")
         .onKeyPress(.space) {
             guard player.url != nil else { return .ignored }
             player.toggle()
@@ -41,7 +41,7 @@ struct SidebarView: View {
         }
         .overlay {
             if library.recordings.isEmpty {
-                Text("还没有录音")
+                Text("No Recordings Yet")
                     .font(.callout)
                     .foregroundStyle(.tertiary)
             } else if !query.isEmpty && sections.isEmpty {
@@ -52,10 +52,10 @@ struct SidebarView: View {
 
     @ViewBuilder
     private func contextMenu(for recording: Recording) -> some View {
-        Button("在 Finder 中显示", systemImage: "folder") { library.reveal(recording) }
+        Button("Show in Finder", systemImage: "folder") { library.reveal(recording) }
         ShareLink(item: recording.url)
         Divider()
-        Button("移到废纸篓", systemImage: "trash", role: .destructive) { trash(recording) }
+        Button("Move to Trash", systemImage: "trash", role: .destructive) { trash(recording) }
     }
 
     private func trash(_ recording: Recording) {
@@ -70,8 +70,8 @@ struct SidebarView: View {
     }
 
     private static func sectionTitle(for day: Date, calendar: Calendar) -> String {
-        if calendar.isDateInToday(day) { return "今天" }
-        if calendar.isDateInYesterday(day) { return "昨天" }
+        if calendar.isDateInToday(day) { return String(localized: "Today") }
+        if calendar.isDateInYesterday(day) { return String(localized: "Yesterday") }
         let sameYear = calendar.isDate(day, equalTo: .now, toGranularity: .year)
         return day.formatted(sameYear ? .dateTime.month().day().weekday() : .dateTime.year().month().day())
     }

@@ -16,7 +16,7 @@ Record what your Mac is playing — every app or just one — optionally mixed w
 
 Get the latest `Rotap-<version>.dmg` from [Releases](https://github.com/max1874/Rotap/releases) and drag Rotap into Applications. The disk image is signed with a Developer ID and notarized by Apple.
 
-Requires **macOS 26** or later. The app's interface is currently in Chinese only.
+Requires **macOS 26** or later. The interface is in English and Simplified Chinese; it follows your system language, or pick one in Settings › Language.
 
 ## Permissions
 

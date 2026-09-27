@@ -4,7 +4,9 @@ import CoreAudio
 /// Something Rotap can record: either everything the Mac plays, or one app (all of its audio processes).
 struct AudioSource: Identifiable, Hashable, Sendable {
     static let systemID = "system"
-    static let system = AudioSource(id: systemID, name: "全部系统声音", appPath: nil, processObjectIDs: [], isPlaying: false)
+    static let system = AudioSource(
+        id: systemID, name: String(localized: "All System Audio"), appPath: nil, processObjectIDs: [], isPlaying: false
+    )
 
     let id: String
     let name: String
@@ -15,7 +17,7 @@ struct AudioSource: Identifiable, Hashable, Sendable {
 
     var isSystem: Bool { id == Self.systemID }
     /// Short label used for file names and recording titles.
-    var label: String { isSystem ? "系统声音" : name }
+    var label: String { isSystem ? String(localized: "System Audio") : name }
 
     /// Groups Core Audio process objects by owning app, so e.g. Chrome's helper processes count as Chrome.
     @MainActor

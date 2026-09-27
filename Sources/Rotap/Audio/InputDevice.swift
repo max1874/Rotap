@@ -1,4 +1,5 @@
 import CoreAudio
+import Foundation
 
 /// What a recording captures.
 enum CaptureMode: String, CaseIterable, Identifiable, Sendable {
@@ -8,11 +9,11 @@ enum CaptureMode: String, CaseIterable, Identifiable, Sendable {
     var includesSystem: Bool { self != .microphone }
     var includesMicrophone: Bool { self != .system }
 
-    var title: String {
+    var title: LocalizedStringResource {
         switch self {
-        case .system: "仅系统声音"
-        case .microphone: "仅麦克风"
-        case .both: "系统声音 + 麦克风"
+        case .system: "System Audio Only"
+        case .microphone: "Microphone Only"
+        case .both: "System Audio + Microphone"
         }
     }
 }

@@ -3,7 +3,12 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>zh_CN</string>
+	<string>en</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -25,9 +30,9 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>NSAudioCaptureUsageDescription</key>
-	<string>Rotap 需要录制其他 App 播放的声音，才能把电脑正在播放的音频保存为文件。</string>
+	<string>Rotap records the sound other apps play so it can save what your Mac is playing to a file.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Rotap 需要使用麦克风，才能录下你的声音，或把它与电脑播放的声音一起保存。</string>
+	<string>Rotap uses the microphone to record your voice, on its own or together with what your Mac is playing.</string>
 	<key>NSSupportsAutomaticTermination</key>
 	<false/>
 </dict>

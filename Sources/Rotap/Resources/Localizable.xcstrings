@@ -1,0 +1,766 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ (playing)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@（正在发声）"
+          }
+        }
+      }
+    },
+    "%@ + Microphone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ + 麦克风"
+          }
+        }
+      }
+    },
+    "%@ failed (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@失败（%2$@）"
+          }
+        }
+      }
+    },
+    "All System Audio": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部系统声音"
+          }
+        }
+      }
+    },
+    "Back 15 Seconds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后退 15 秒"
+          }
+        }
+      }
+    },
+    "Capture": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制内容"
+          }
+        }
+      }
+    },
+    "Change…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改…"
+          }
+        }
+      }
+    },
+    "Choose": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择"
+          }
+        }
+      }
+    },
+    "Choose what to record": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要录制的声音来源"
+          }
+        }
+      }
+    },
+    "Couldn’t Rename": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法重命名"
+          }
+        }
+      }
+    },
+    "Couldn’t write the recording: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写入失败：%@"
+          }
+        }
+      }
+    },
+    "Creating the aggregate device": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建聚合设备"
+          }
+        }
+      }
+    },
+    "Creating the audio tap": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建音频 Tap"
+          }
+        }
+      }
+    },
+    "Finding %@’s audio processes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位「%@」的音频进程"
+          }
+        }
+      }
+    },
+    "Finding the process’s audio object": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找进程音频对象"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件夹"
+          }
+        }
+      }
+    },
+    "Follow System": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        }
+      }
+    },
+    "Format": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式"
+          }
+        }
+      }
+    },
+    "Forward 15 Seconds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前进 15 秒"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "M4A · AAC, smaller files": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "M4A · AAC，体积小"
+          }
+        }
+      }
+    },
+    "Microphone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风"
+          }
+        }
+      }
+    },
+    "Microphone Only": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅麦克风"
+          }
+        }
+      }
+    },
+    "Move to Trash": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到废纸篓"
+          }
+        }
+      }
+    },
+    "No Recordings Yet": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有录音"
+          }
+        }
+      }
+    },
+    "No microphone is available.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到可用的麦克风。"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "Open Privacy & Security Settings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开隐私与安全性设置"
+          }
+        }
+      }
+    },
+    "Pause": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限"
+          }
+        }
+      }
+    },
+    "Pick a source and start recording. Rotap just listens in and never changes your speaker or headphone output.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择来源后开始录音。Rotap 只在旁边聆听，不改变你的扬声器或耳机输出。"
+          }
+        }
+      }
+    },
+    "Play": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放"
+          }
+        }
+      }
+    },
+    "Preparing the audio buffer": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备音频缓冲"
+          }
+        }
+      }
+    },
+    "Reading an audio property": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取音频属性"
+          }
+        }
+      }
+    },
+    "Reading audio objects": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取音频对象列表"
+          }
+        }
+      }
+    },
+    "Reading the sample rate": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取采样率"
+          }
+        }
+      }
+    },
+    "Reading the tap’s audio format": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解析 Tap 音频格式"
+          }
+        }
+      }
+    },
+    "Record": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音"
+          }
+        }
+      }
+    },
+    "Record What Your Mac Plays": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录下 Mac 正在播放的声音"
+          }
+        }
+      }
+    },
+    "Record Your Mac and the Microphone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时录下 Mac 的声音和麦克风"
+          }
+        }
+      }
+    },
+    "Record system audio, the microphone, or both": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择录制系统声音、麦克风，或两者同时录制"
+          }
+        }
+      }
+    },
+    "Record with the Microphone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用麦克风录音"
+          }
+        }
+      }
+    },
+    "Recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音"
+          }
+        }
+      }
+    },
+    "Recording Format": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音格式"
+          }
+        }
+      }
+    },
+    "Recording…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在录音"
+          }
+        }
+      }
+    },
+    "Registering the audio callback": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注册音频回调"
+          }
+        }
+      }
+    },
+    "Restart Now": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即重启"
+          }
+        }
+      }
+    },
+    "Restart Rotap to switch the language.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重启 Rotap 后切换语言。"
+          }
+        }
+      }
+    },
+    "Restore Default": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认"
+          }
+        }
+      }
+    },
+    "Rotap": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotap"
+          }
+        }
+      }
+    },
+    "Rotap doesn’t have access to the microphone. Allow Rotap in System Settings › Privacy & Security › Microphone, or switch to System Audio Only.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotap 没有麦克风权限。请在「系统设置 › 隐私与安全性 › 麦克风」中允许 Rotap，或改为「仅系统声音」。"
+          }
+        }
+      }
+    },
+    "Save Location": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存位置"
+          }
+        }
+      }
+    },
+    "Search Recordings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索录音"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Finder 中显示"
+          }
+        }
+      }
+    },
+    "Source": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源"
+          }
+        }
+      }
+    },
+    "Start Recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录音"
+          }
+        }
+      }
+    },
+    "Start Recording (⌘R)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录音 (⌘R)"
+          }
+        }
+      }
+    },
+    "Starting the recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动录音"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        }
+      }
+    },
+    "Stop Recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止录音"
+          }
+        }
+      }
+    },
+    "Stop Recording (⌘R)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止录音 (⌘R)"
+          }
+        }
+      }
+    },
+    "System Audio": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统声音"
+          }
+        }
+      }
+    },
+    "System Audio + Microphone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统声音 + 麦克风"
+          }
+        }
+      }
+    },
+    "System Audio Only": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅系统声音"
+          }
+        }
+      }
+    },
+    "System Default": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统默认"
+          }
+        }
+      }
+    },
+    "System Default (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统默认（%@）"
+          }
+        }
+      }
+    },
+    "The disk couldn’t keep up; about %@ seconds of audio were lost.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘写入跟不上，丢失了约 %@ 秒音频。"
+          }
+        }
+      }
+    },
+    "The first time you record, macOS asks whether Rotap may record other apps’ audio, and the microphone when you use it. If a recording is silent, allow Rotap in System Settings.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一次录音时，macOS 会询问是否允许 Rotap 录制其他 App 的音频；用到麦克风时也会询问麦克风权限。如果录下来全是静音，请在系统设置里允许 Rotap。"
+          }
+        }
+      }
+    },
+    "Title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        }
+      }
+    },
+    "To use a different microphone, pick it from the microphone menu in the toolbar.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在工具栏的麦克风菜单里可以换用别的麦克风。"
+          }
+        }
+      }
+    },
+    "Today": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天"
+          }
+        }
+      }
+    },
+    "WAV · 24-bit lossless": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV · 24-bit 无损"
+          }
+        }
+      }
+    },
+    "Waiting for sound…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待声音…"
+          }
+        }
+      }
+    },
+    "Waiting for sound… The waveform appears once something plays.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待声音… 开始播放后波形就会出现"
+          }
+        }
+      }
+    },
+    "Yesterday": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昨天"
+          }
+        }
+      }
+    },
+    "Your voice and what your Mac plays are mixed into one file. Rotap never changes your speaker or headphone output.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你说的话和电脑播放的声音会混在同一个文件里。Rotap 不改变你的扬声器或耳机输出。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

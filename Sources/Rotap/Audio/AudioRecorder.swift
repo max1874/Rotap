@@ -100,7 +100,7 @@ final class AudioRecorder: @unchecked Sendable {
             // The aggregate runs at its main device's rate (the microphone when present); the tap is resampled to it.
             let aggregateRate = (try? aggregateID.read(kAudioDevicePropertyNominalSampleRate, default: Float64(0))) ?? 0
             guard let sampleRate = aggregateRate > 0 ? aggregateRate : tapRate else {
-                throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "读取采样率")
+                throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "Reading the sample rate")
             }
             let io = IOState(sampleRate: sampleRate)
             let writer = try Writer(url: url, format: format, io: io) { [weak self] error in
@@ -155,7 +155,7 @@ final class AudioRecorder: @unchecked Sendable {
             description = CATapDescription(stereoGlobalTapButExcludeProcesses: [])
         } else {
             guard !source.processObjectIDs.isEmpty else {
-                throw CoreAudioError(status: kAudioHardwareBadObjectError, operation: "定位「\(source.name)」的音频进程")
+                throw CoreAudioError(status: kAudioHardwareBadObjectError, operation: "Finding \(source.name)’s audio processes")
             }
             let own = (try? AudioObjectID.processObject(for: ProcessInfo.processInfo.processIdentifier)) ?? .unknown
             description = CATapDescription(stereoMixdownOfProcesses: source.processObjectIDs + (own == .unknown ? [] : [own]))
@@ -166,7 +166,7 @@ final class AudioRecorder: @unchecked Sendable {
         description.muteBehavior = .unmuted
 
         var tapID = AudioObjectID.unknown
-        try check(AudioHardwareCreateProcessTap(description, &tapID), "创建音频 Tap")
+        try check(AudioHardwareCreateProcessTap(description, &tapID), "Creating the audio tap")
         self.tapID = tapID
     }
 
@@ -176,7 +176,7 @@ final class AudioRecorder: @unchecked Sendable {
             && format.mFormatFlags & kAudioFormatFlagIsFloat != 0
             && format.mBitsPerChannel == 32
         guard isFloat32, format.mChannelsPerFrame > 0, format.mSampleRate > 0 else {
-            throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "解析 Tap 音频格式")
+            throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "Reading the tap’s audio format")
         }
         return format
     }
@@ -203,7 +203,7 @@ final class AudioRecorder: @unchecked Sendable {
             description[kAudioAggregateDeviceTapListKey] = [[kAudioSubTapUIDKey: tapUID, kAudioSubTapDriftCompensationKey: true]]
         }
         var aggregateID = AudioObjectID.unknown
-        try check(AudioHardwareCreateAggregateDevice(description as CFDictionary, &aggregateID), "创建聚合设备")
+        try check(AudioHardwareCreateAggregateDevice(description as CFDictionary, &aggregateID), "Creating the aggregate device")
         self.aggregateID = aggregateID
     }
 
@@ -234,9 +234,9 @@ final class AudioRecorder: @unchecked Sendable {
         // nil queue: the block runs directly on the HAL's real-time IO thread.
         try check(AudioDeviceCreateIOProcIDWithBlock(&ioProcID, aggregateID, nil) { _, input, _, _, _ in
             io.receive(input)
-        }, "注册音频回调")
+        }, "Registering the audio callback")
         self.ioProcID = ioProcID
-        try check(AudioDeviceStart(aggregateID, ioProcID), "启动录音")
+        try check(AudioDeviceStart(aggregateID, ioProcID), "Starting the recording")
     }
 }
 
@@ -328,7 +328,7 @@ private final class Writer: @unchecked Sendable {
             commonFormat: .pcmFormatFloat32, sampleRate: io.sampleRate,
             channels: AVAudioChannelCount(io.channels), interleaved: true
         ), let buffer = AVAudioPCMBuffer(pcmFormat: pcm, frameCapacity: 8192) else {
-            throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "准备音频缓冲")
+            throw CoreAudioError(status: kAudioHardwareUnsupportedOperationError, operation: "Preparing the audio buffer")
         }
         self.buffer = buffer
         file = try AVAudioFile(

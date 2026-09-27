@@ -16,7 +16,7 @@
 
 在 [Releases](https://github.com/max1874/Rotap/releases) 下载最新的 `Rotap-<版本>.dmg`，把 Rotap 拖进「应用程序」。安装包经过 Developer ID 签名和 Apple 公证。
 
-需要 **macOS 26** 或更高版本。App 界面目前只有中文。
+需要 **macOS 26** 或更高版本。界面支持英文和简体中文，默认跟随系统语言，也可以在「设置 › 语言」里单独指定。
 
 ## 权限
 

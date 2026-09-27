@@ -17,8 +17,8 @@ final class RecorderModel {
         var label: String {
             switch (source, microphone) {
             case let (source?, nil): source.label
-            case let (source?, _?): "\(source.label) + 麦克风"
-            default: "麦克风"
+            case let (source?, _?): String(localized: "\(source.label) + Microphone")
+            default: String(localized: "Microphone")
             }
         }
     }
@@ -49,7 +49,7 @@ final class RecorderModel {
         self.preferences = preferences
         recorder.onFailure = { [weak self] error in
             self?.stop()
-            self?.errorMessage = "写入失败：\(error.localizedDescription)"
+            self?.errorMessage = String(localized: "Couldn’t write the recording: \(error.localizedDescription)")
         }
         refreshSources()
         refreshMicrophones()
@@ -114,7 +114,7 @@ final class RecorderModel {
         if mode.includesMicrophone {
             refreshMicrophones()
             guard let selected = selectedMicrophone else {
-                errorMessage = "没有找到可用的麦克风。"
+                errorMessage = String(localized: "No microphone is available.")
                 return
             }
             microphone = selected
@@ -137,7 +137,7 @@ final class RecorderModel {
     }
 
     private func reportMicrophoneDenied() {
-        errorMessage = "Rotap 没有麦克风权限。请在「系统设置 › 隐私与安全性 › 麦克风」中允许 Rotap，或改为「仅系统声音」。"
+        errorMessage = String(localized: "Rotap doesn’t have access to the microphone. Allow Rotap in System Settings › Privacy & Security › Microphone, or switch to System Audio Only.")
     }
 
     func stop() {
@@ -148,7 +148,7 @@ final class RecorderModel {
         finishedRecording = session.url
         if stats.droppedFrames > 0 {
             let seconds = Double(stats.droppedFrames) / stats.sampleRate
-            errorMessage = String(format: "磁盘写入跟不上，丢失了约 %.1f 秒音频。", seconds)
+            errorMessage = String(localized: "The disk couldn’t keep up; about \(seconds.formatted(.number.precision(.fractionLength(1)))) seconds of audio were lost.")
         }
     }
 }

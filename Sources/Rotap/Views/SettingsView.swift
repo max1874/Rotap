@@ -2,44 +2,63 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(Preferences.self) private var preferences
+    @Environment(RecorderModel.self) private var recorder
 
     var body: some View {
         @Bindable var preferences = preferences
 
         Form {
-            Section("录音格式") {
-                Picker("格式", selection: $preferences.format) {
-                    Text("M4A · AAC，体积小").tag(OutputFormat.m4a)
-                    Text("WAV · 24-bit 无损").tag(OutputFormat.wav)
+            Section("Recording Format") {
+                Picker("Format", selection: $preferences.format) {
+                    Text("M4A · AAC, smaller files").tag(OutputFormat.m4a)
+                    Text("WAV · 24-bit lossless").tag(OutputFormat.wav)
                 }
                 .pickerStyle(.radioGroup)
             }
 
-            Section("保存位置") {
-                LabeledContent("文件夹") {
+            Section("Save Location") {
+                LabeledContent("Folder") {
                     Text(preferences.directory.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Button("更改…", action: chooseDirectory)
-                    Button("在 Finder 中显示") { NSWorkspace.shared.open(preferences.directory) }
+                    Button("Change…", action: chooseDirectory)
+                    Button("Show in Finder") { NSWorkspace.shared.open(preferences.directory) }
                     Spacer()
                     if preferences.directory != Preferences.defaultDirectory {
-                        Button("恢复默认") { preferences.directory = Preferences.defaultDirectory }
+                        Button("Restore Default") { preferences.directory = Preferences.defaultDirectory }
+                    }
+                }
+            }
+
+            Section("Language") {
+                Picker("Language", selection: $preferences.language) {
+                    Text("Follow System").tag(AppLanguage.system)
+                    // Each language is named in itself, so it can be found whatever the current one is.
+                    Text(verbatim: "English").tag(AppLanguage.english)
+                    Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
+                }
+                if preferences.needsRelaunchForLanguage {
+                    HStack {
+                        Text("Restart Rotap to switch the language.")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Restart Now") { AppLanguage.relaunch() }
+                            .disabled(recorder.isRecording)
                     }
                 }
             }
 
             Section {
-                Text("第一次录音时，macOS 会询问是否允许 Rotap 录制其他 App 的音频。如果录下来全是静音，请在系统设置里打开 Rotap 的权限。")
+                Text("The first time you record, macOS asks whether Rotap may record other apps’ audio, and the microphone when you use it. If a recording is silent, allow Rotap in System Settings.")
                     .foregroundStyle(.secondary)
-                Button("打开隐私与安全性设置") {
+                Button("Open Privacy & Security Settings") {
                     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")!)
                 }
             } header: {
-                Text("权限")
+                Text("Permissions")
             }
         }
         .formStyle(.grouped)
@@ -53,7 +72,7 @@ struct SettingsView: View {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.directoryURL = preferences.directory
-        panel.prompt = "选择"
+        panel.prompt = String(localized: "Choose")
         if panel.runModal() == .OK, let url = panel.url {
             preferences.directory = url
         }

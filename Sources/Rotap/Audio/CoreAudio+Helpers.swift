@@ -3,10 +3,11 @@ import Foundation
 
 struct CoreAudioError: LocalizedError {
     let status: OSStatus
-    let operation: String
+    let operation: LocalizedStringResource
 
     var errorDescription: String? {
-        "\(operation)失败（OSStatus \(status)\(fourCC.map { " '\($0)'" } ?? "")）"
+        let code = "OSStatus \(status)" + (fourCC.map { " '\($0)'" } ?? "")
+        return String(localized: "\(String(localized: operation)) failed (\(code))")
     }
 
     private var fourCC: String? {
@@ -16,7 +17,7 @@ struct CoreAudioError: LocalizedError {
     }
 }
 
-func check(_ status: OSStatus, _ operation: String) throws {
+func check(_ status: OSStatus, _ operation: LocalizedStringResource) throws {
     guard status == noErr else { throw CoreAudioError(status: status, operation: operation) }
 }
 
@@ -38,7 +39,7 @@ extension AudioObjectID {
         var address = Self.address(selector)
         var size = UInt32(MemoryLayout<T>.size)
         var result = value
-        try check(AudioObjectGetPropertyData(self, &address, 0, nil, &size, &result), "读取音频属性")
+        try check(AudioObjectGetPropertyData(self, &address, 0, nil, &size, &result), "Reading an audio property")
         return result
     }
 
@@ -46,7 +47,7 @@ extension AudioObjectID {
         var address = Self.address(selector)
         var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
         var value: Unmanaged<CFString>?
-        try check(AudioObjectGetPropertyData(self, &address, 0, nil, &size, &value), "读取音频属性")
+        try check(AudioObjectGetPropertyData(self, &address, 0, nil, &size, &value), "Reading an audio property")
         guard let value else { return "" }
         return value.takeRetainedValue() as String
     }
@@ -56,9 +57,9 @@ extension AudioObjectID {
     ) throws -> [AudioObjectID] {
         var address = Self.address(selector, scope: scope)
         var size: UInt32 = 0
-        try check(AudioObjectGetPropertyDataSize(self, &address, 0, nil, &size), "读取音频对象列表")
+        try check(AudioObjectGetPropertyDataSize(self, &address, 0, nil, &size), "Reading audio objects")
         var ids = [AudioObjectID](repeating: .unknown, count: Int(size) / MemoryLayout<AudioObjectID>.stride)
-        try check(AudioObjectGetPropertyData(self, &address, 0, nil, &size, &ids), "读取音频对象列表")
+        try check(AudioObjectGetPropertyData(self, &address, 0, nil, &size, &ids), "Reading audio objects")
         return Array(ids.prefix(Int(size) / MemoryLayout<AudioObjectID>.stride))
     }
 
@@ -69,7 +70,7 @@ extension AudioObjectID {
         var id = AudioObjectID.unknown
         try check(
             AudioObjectGetPropertyData(.system, &address, UInt32(MemoryLayout<pid_t>.size), &pid, &size, &id),
-            "查找进程音频对象"
+            "Finding the process’s audio object"
         )
         return id
     }

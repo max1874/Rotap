@@ -18,7 +18,7 @@ struct LiveRecordingView: View {
                     Text(source.name)
                 }
                 if let microphone = session.microphone {
-                    if session.source != nil { Text("+").foregroundStyle(.secondary) }
+                    if session.source != nil { Text(verbatim: "+").foregroundStyle(.secondary) }
                     Image(systemName: "mic.fill")
                     Text(microphone.name)
                 }
@@ -40,8 +40,8 @@ struct LiveRecordingView: View {
                 .padding(.top, 20)
 
             TimelineView(.periodic(from: session.startedAt, by: 1)) { _ in
-                Text(recorder.hasHeardSound ? "正在录音"
-                     : session.source == nil ? "等待声音…" : "等待声音… 开始播放后波形就会出现")
+                Text(recorder.hasHeardSound ? "Recording…"
+                     : session.source == nil ? "Waiting for sound…" : "Waiting for sound… The waveform appears once something plays.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -57,7 +57,7 @@ struct LiveRecordingView: View {
             .buttonStyle(.glassProminent)
             .buttonBorderShape(.circle)
             .tint(Color.recordGlassTint)
-            .help("停止录音 (⌘R)")
+            .help("Stop Recording (⌘R)")
             .padding(.bottom, 32)
         }
         .padding(.horizontal, 40)
