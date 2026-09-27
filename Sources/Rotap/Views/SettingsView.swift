@@ -34,7 +34,7 @@ struct SettingsView: View {
             }
 
             Section("Language") {
-                Picker("Language", selection: $preferences.language) {
+                Picker("Interface Language", selection: $preferences.language) {
                     Text("Follow System").tag(AppLanguage.system)
                     // Each language is named in itself, so it can be found whatever the current one is.
                     Text(verbatim: "English").tag(AppLanguage.english)

@@ -191,6 +191,16 @@
         }
       }
     },
+    "Interface Language": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面语言"
+          }
+        }
+      }
+    },
     "Language": {
       "localizations": {
         "zh-Hans": {

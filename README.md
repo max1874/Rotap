@@ -4,6 +4,8 @@ English | [简体中文](README.zh-CN.md)
 
 Record what your Mac is playing — every app or just one — optionally mixed with your microphone. A native macOS app: no virtual audio driver, no changes to your speaker or headphone setup.
 
+![Rotap playing back a recording](docs/screenshots/en-player.png)
+
 ## Features
 
 - **Three capture modes**: system audio only, microphone only, or system audio + microphone mixed into one file.
@@ -11,6 +13,8 @@ Record what your Mac is playing — every app or just one — optionally mixed w
 - **Formats**: M4A (AAC) or WAV (24-bit).
 - **Waveform**: drawn live while recording; after recording, click or drag on it to seek.
 - **Stays out of the way**: listens through a Core Audio process tap, so your output device keeps working and what you hear is unchanged.
+
+![Recording system audio and the microphone together](docs/screenshots/en-recording.png)
 
 ## Download
 
