@@ -1,26 +1,110 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.97647,0.45098,0.14902,1.00000"
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.92157,0.29804,0.27451,1.00000"
   },
-  "groups" : [
+  "groups": [
     {
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "waveform.svg",
-          "name" : "waveform"
+          "image-name": "dots.svg",
+          "name": "dots",
+          "glass": true,
+          "fill-specializations": [
+            {
+              "value": {
+                "solid": "extended-srgb:1.0,1.0,1.0,1.0"
+              }
+            },
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.92157,0.29804,0.27451,1.00000"
+              }
+            }
+          ],
+          "position": {
+            "scale": 1.0,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          },
+          "opacity": 0.6
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.4
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.2
+      }
+    },
+    {
+      "layers": [
+        {
+          "image-name": "bars.svg",
+          "name": "bars",
+          "glass": true,
+          "fill-specializations": [
+            {
+              "value": {
+                "solid": "extended-srgb:1.0,1.0,1.0,1.0"
+              }
+            },
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.92157,0.29804,0.27451,1.00000"
+              }
+            }
+          ],
+          "position": {
+            "scale": 1.0,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.45
+      }
+    },
+    {
+      "layers": [
+        {
+          "image-name": "dot.svg",
+          "name": "dot",
+          "glass": true,
+          "fill-specializations": [
+            {
+              "value": {
+                "solid": "extended-srgb:1.0,1.0,1.0,1.0"
+              }
+            },
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.92157,0.29804,0.27451,1.00000"
+              }
+            }
+          ],
+          "position": {
+            "scale": 1.0,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
       }
     }
   ],
-  "supported-platforms" : {
-    "squares" : "shared"
+  "supported-platforms": {
+    "squares": "shared"
   }
 }
